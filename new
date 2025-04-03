@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog de Palpites de Futebol</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background: #1e3a8a;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        main {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .palpite {
+            background: #e2e8f0;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            position: relative;
+        }
+        .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", carregarPalpites);
+
+        function validarSenhaAdmin() {
+            const senha = prompt("Digite a senha para acessar a administração:");
+            if (senha === "kkkkkkk8") {
+                document.getElementById("admin-section").style.display = "block";
+                document.getElementById("palpites-gratis").style.display = "none";
+                document.getElementById("palpites-vip").style.display = "none";
+            } else {
+                alert("Senha incorreta!");
+            }
+        }
+
+        function validarAcessoVip() {
+            const codigo = prompt("Digite o código de acesso VIP:");
+            if (codigo === "VIP123" || codigo === "MEMBRO1"| codigo === "kkkkkkk8") {
+                document.getElementById("palpites-vip").style.display = "block";
+                document.getElementById("palpites-gratis").style.display = "none";
+                document.getElementById("admin-section").style.display = "none";
+            } else {
+                alert("Código incorreto!");
+            }
+        }
+
+        function adicionarPalpite(tipo) {
+            const jogo = document.getElementById("jogo").value;
+            const palpite = document.getElementById("palpite").value;
+            const dataHora = document.getElementById("data-hora").value;
+            
+            if (!jogo || !palpite || !dataHora) {
+                alert("Preencha todos os campos!");
+                return;
+            }
+
+            const idPalpite = Date.now();
+            const palpiteObj = { id: idPalpite, jogo, palpite, dataHora, tipo };
+            let palpites = JSON.parse(localStorage.getItem("palpites")) || [];
+            palpites.push(palpiteObj);
+            localStorage.setItem("palpites", JSON.stringify(palpites));
+            carregarPalpites();
+        }
+
+        function carregarPalpites() {
+            const palpites = JSON.parse(localStorage.getItem("palpites")) || [];
+            const listaGratis = document.getElementById("palpites-gratis-lista");
+            const listaVip = document.getElementById("palpites-vip-lista");
+            const listaAdmin = document.getElementById("palpites-admin-lista");
+            listaGratis.innerHTML = "";
+            listaVip.innerHTML = "";
+            listaAdmin.innerHTML = "";
+            palpites.forEach(({ id, jogo, palpite, dataHora, tipo }) => {
+                const palpiteElemento = `<div class='palpite' data-id='${id}'>
+                    <p><strong>Jogo:</strong> ${jogo}</p>
+                    <p><strong>Palpite:</strong> ${palpite}</p>
+                    <p><strong>Data e Hora:</strong> ${dataHora}</p>
+                </div>`;
+                if (tipo === "gratis") {
+                    listaGratis.innerHTML += palpiteElemento;
+                } else {
+                    listaVip.innerHTML += palpiteElemento;
+                }
+                listaAdmin.innerHTML += palpiteElemento.replace('</div>', `<button class='remove-btn' onclick='removerPalpite(${id})'>Remover</button></div>`);
+            });
+        }
+
+        function removerPalpite(id) {
+            let palpites = JSON.parse(localStorage.getItem("palpites")) || [];
+            palpites = palpites.filter(p => p.id !== id);
+            localStorage.setItem("palpites", JSON.stringify(palpites));
+            carregarPalpites();
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Palpites de Futebol</h1>
+        <nav>
+            <ul>
+                <li><a href="#" onclick="document.getElementById('palpites-gratis').style.display = 'block'; document.getElementById('palpites-vip').style.display = 'none'; document.getElementById('admin-section').style.display = 'none';">Palpites Grátis</a></li>
+                <li><a href="#" onclick="validarAcessoVip()">Área VIP</a></li>
+                <li><a href="#" onclick="validarSenhaAdmin()">Administração</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <section id="palpites-gratis">
+            <h2>Palpites Grátis</h2>
+            <div id="palpites-gratis-lista"></div>
+        </section>
+        
+        <section id="palpites-vip" style="display: none;">
+            <h2>Palpites VIP</h2>
+            <div id="palpites-vip-lista"></div>
+        </section>
+        
+        <section id="admin-section" style="display: none;">
+            <h2>Administração</h2>
+            <input type="text" id="jogo" placeholder="Jogo">
+            <input type="text" id="palpite" placeholder="Palpite">
+            <input type="datetime-local" id="data-hora">
+            <button onclick="adicionarPalpite('gratis')">Adicionar Palpite Grátis</button>
+            <button onclick="adicionarPalpite('vip')">Adicionar Palpite VIP</button>
+            <h3>Palpites Adicionados</h3>
+            <div id="palpites-admin-lista"></div>
+        </section>
+    </main>
+</body>
+</html>
